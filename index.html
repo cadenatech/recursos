@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="page.title">Visor Web-ZIP</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=30">
+</head>
+<body>
+
+  <div class="loading-screen" data-loading hidden>
+    <div class="loading-card">
+      <div class="loading-title" data-i18n="loading.title">Cargando material</div>
+      <div class="loading-message" data-loading-message data-i18n="loading.message" data-i18n-dynamic>Preparando...</div>
+      <div class="loading-bar" data-loading-bar-wrap>
+        <div class="loading-bar__fill" data-loading-bar></div>
+      </div>
+      <div class="loading-note" data-loading-eta data-i18n="loading.eta" hidden>Tiempo estimado de descarga: --</div>
+    </div>
+  </div>
+  <main data-main>
+    <header>
+      <div class="title-row">
+        <img class="app-mark" src="favicon.svg" alt="" aria-hidden="true">
+        <div class="title-stack">
+          <h1 data-i18n="header.title">Visor Web-ZIP</h1>
+          <p class="header-subtitle" data-i18n="header.subtitle">Genera un enlace web para compartir tu recurso (carpeta, archivos, HTML, ZIP o ELPX). Comparte el enlace y tu recurso podrá ser abierto directamente en cualquier navegador.</p>
+        </div>
+        <div class="title-actions">
+          <div class="lang-picker" data-i18n-tooltip="header.languageHint">
+            <span class="lang-picker__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"></path>
+              </svg>
+            </span>
+            <label for="lang-select" class="sr-only" data-i18n="lang.label">Idioma</label>
+            <select id="lang-select" class="lang-picker__select" data-lang-select data-i18n-aria-label="header.language" aria-label="Idioma">
+              <option value="es" data-i18n="lang.es">Español</option>
+              <option value="ca" data-i18n="lang.ca">Català</option>
+              <option value="gl" data-i18n="lang.gl">Galego</option>
+              <option value="eu" data-i18n="lang.eu">Euskara</option>
+              <option value="en" data-i18n="lang.en">English</option>
+              <option value="de" data-i18n="lang.de">Deutsch</option>
+            </select>
+          </div>
+          <div class="lang-picker theme-picker" data-i18n-tooltip="header.themeHint">
+            <span class="lang-picker__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a9 9 0 1 0 9 9 7 7 0 1 1-9-9Z"></path>
+              </svg>
+            </span>
+            <label for="theme-select" class="sr-only" data-i18n="header.theme">Tema</label>
+            <select id="theme-select" class="lang-picker__select" data-theme-select data-i18n-aria-label="header.theme" aria-label="Tema">
+              <option value="auto" data-i18n="header.themeAuto">Automático</option>
+              <option value="light" data-i18n="header.themeLight">Claro</option>
+              <option value="dark" data-i18n="header.themeDark">Oscuro</option>
+            </select>
+          </div>
+          <button class="help-pill" type="button" data-about-open data-i18n-aria-label="header.help">
+            <span class="help-pill__icon">?</span>
+            <span class="help-pill__tooltip" role="tooltip" data-i18n="header.help">Ayuda</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabs-shell">
+      <div class="tabs" role="tablist" aria-label="Secciones" data-i18n-aria-label="tabs.label">
+        <button
+          id="tab-home"
+          class="tab-button is-active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-publish"
+          tabindex="0"
+          data-tab="home"
+          data-i18n="tab.home"
+        >Inicio</button>
+        <button
+          id="tab-zipper"
+          class="tab-button"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-publish"
+          tabindex="-1"
+          data-tab="zipper"
+          data-i18n="tab.downloadZip"
+        >Opciones y descargas</button>
+        <button
+          id="tab-manager"
+          class="tab-button"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-manager"
+          tabindex="-1"
+          data-tab="manager"
+          data-i18n="tab.manager"
+        >Gestor de recursos</button>
+      </div>
+
+      <section
+        id="panel-publish"
+        class="tab-panel is-active"
+        role="tabpanel"
+        aria-labelledby="tab-home tab-zipper"
+        tabindex="0"
+        data-tab-panel="publish"
+      >
+      <div class="publish">
+        <div class="manager-card" data-publish-choice>
+          <p class="publish-quick-intro" data-i18n="publish.quick.intro">Para compartir tu recurso necesitas un ZIP o ELPX subido a la nube con enlace público. Si aún no lo tienes, aquí puedes generar el ZIP. Después súbelo a tu servicio en la nube y pega el enlace público en la sección inferior: Ya tengo un ZIP o ELPX en la nube.</p>
+          <section class="publish-quick-actions" aria-label="Acciones rápidas">
+            <div class="publish-quick-card">
+              <h3 class="publish-quick-card__title" data-i18n="publish.quick.files.title">Sube tu recurso</h3>
+              <div class="dropzone dropzone--quick" data-quick-dropzone>
+                <div class="dropzone__title" data-i18n="publish.quick.files.dropTitle">Arrastra aquí la carpeta o los archivos</div>
+                <div class="dropzone__actions">
+                  <button class="ghost-button" type="button" data-quick-folder-button data-i18n="publish.quick.files.folder">Elegir carpeta</button>
+                  <button class="ghost-button" type="button" data-quick-file-button data-i18n="publish.quick.files.files">Elegir archivos</button>
+                  <input type="file" data-quick-folder-input webkitdirectory multiple hidden>
+                  <input type="file" data-quick-file-input multiple hidden>
+                </div>
+              </div>
+            </div>
+            <div class="publish-quick-card">
+              <h3 class="publish-quick-card__title" data-i18n="publish.quick.html.title">¿Tienes código HTML? Pégalo aquí (para código generado por IA)</h3>
+              <textarea class="html-zip-textarea publish-quick-html" data-quick-html-input data-i18n-placeholder="publish.quick.html.placeholder" placeholder="&lt;!doctype html&gt;..."></textarea>
+              <div class="publish-quick-html__actions">
+                <button class="ghost-button" type="button" data-quick-html-apply data-i18n="publish.quick.html.apply">Usar este HTML</button>
+              </div>
+            </div>
+          </section>
+          <div class="publish-choice-main">
+            <section class="publish-choice-card publish-choice-card--link" id="ya-tengo-zip-elpx" aria-labelledby="main-link-title">
+              <span class="publish-choice-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div class="publish-choice-card__title">
+                <span id="main-link-title" data-i18n="publish.choice.main.title">Ya tengo un ZIP, ELPX o H5P en la nube</span>
+              </div>
+              <span class="publish-choice-card__note" data-i18n="publish.choice.main.note">Pega el enlace público (ZIP/ELPX/H5P) y crea el enlace del visor.</span>
+              <form class="publish-link-form" data-form>
+                <input data-url type="url" placeholder="Pega aquí el enlace público del ZIP o del .elpx/.h5p (también válido si incluye PDF o DOCX)" data-i18n-placeholder="main.form.placeholder" required>
+                <button type="submit" data-create-link data-i18n="main.form.submit">Crear enlace</button>
+              </form>
+              <p class="publish-link-feedback" data-create-link-feedback aria-live="polite" hidden></p>
+              <div class="output-row publish-link-result" data-home-share-result hidden>
+                <div class="output-group" data-step-three>
+                  <span class="field-title" data-i18n="main.output.title">Enlace para compartir</span>
+                  <p class="step-note" data-i18n="main.output.step">Comparte este enlace para que otros puedan ver tu recurso.</p>
+                  <div class="share-restrict-summary" data-share-restrict-summary hidden>
+                    <div class="share-restrict-summary__items" data-share-restrict-items></div>
+                  </div>
+                  <section class="output" data-output data-i18n="main.output.placeholder" data-i18n-dynamic>Aquí se mostrará el enlace</section>
+                </div>
+                <div class="actions actions--icons">
+                  <button class="icon-button icon-button--lg" type="button" data-copy disabled data-i18n-aria-label="main.output.copy" data-i18n-tooltip="main.output.copyTooltip">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <path d="M8.6 10.7l6.8-3.4"></path>
+                      <path d="M8.6 13.3l6.8 3.4"></path>
+                    </svg>
+                  </button>
+                  <button class="icon-button icon-button--lg icon-button--wrap" type="button" data-qr disabled data-i18n-aria-label="main.output.qr" data-i18n-tooltip="main.output.qrTooltip">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="5" height="5" x="3" y="3" rx="1"></rect>
+                      <rect width="5" height="5" x="16" y="3" rx="1"></rect>
+                      <rect width="5" height="5" x="3" y="16" rx="1"></rect>
+                      <path d="M21 16h-3a2 2 0 0 0-2 2v3"></path>
+                      <path d="M21 21v.01"></path>
+                      <path d="M12 7v3a2 2 0 0 1-2 2H7"></path>
+                      <path d="M3 12h.01"></path>
+                      <path d="M12 3h.01"></path>
+                      <path d="M12 16v.01"></path>
+                      <path d="M16 12h1"></path>
+                      <path d="M21 12v.01"></path>
+                      <path d="M12 21v-1"></path>
+                    </svg>
+                  </button>
+                  <button class="icon-button icon-button--lg icon-button--wrap" type="button" data-embed disabled data-i18n-aria-label="main.output.embed" data-i18n-tooltip="main.output.embedTooltip">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 18l6-6-6-6"></path>
+                      <path d="M8 6l-6 6 6 6"></path>
+                      <path d="M14 4l-4 16"></path>
+                    </svg>
+                  </button>
+                  <a class="icon-button icon-button--lg" data-open href="#" target="_blank" rel="noopener" aria-disabled="true" data-i18n-aria-label="main.output.open" data-i18n-tooltip="main.output.openTooltip">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1.5 12s3.5-7 10.5-7 10.5 7 10.5 7-3.5 7-10.5 7-10.5-7-10.5-7z"></path>
+                      <circle cx="12" cy="12" r="3.5"></circle>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+	        <div class="publish-module" data-publish-module="zipper" hidden>
+	          <div class="manager-card">
+            <div class="manager-header">
+              <div>
+                <h2 data-i18n="zipper.title">Crear ZIP para el visor</h2>
+              </div>
+              <button class="card-lock" type="button" data-lock-indicator data-main-settings-open data-i18n-aria-label="header.settings" data-i18n-tooltip="header.settingsHint">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+              </button>
+            </div>
+            <section class="html-zip-card zipper-selection-card">
+              <h3 class="zipper-selection-card__title" data-i18n="zipper.summary.title">Resumen del contenido cargado</h3>
+              <p class="upload-status upload-status--summary" data-upload-status data-i18n="zipper.status.empty" data-i18n-dynamic>No hay archivos seleccionados.</p>
+              <textarea class="html-zip-textarea" data-html-zip-input data-i18n-placeholder="zipper.html.placeholder" placeholder="&lt;!doctype html&gt;..." hidden></textarea>
+              <p class="upload-status" data-html-zip-status data-i18n="zipper.html.status.ready" data-i18n-dynamic hidden>Listo para crear el ZIP desde tu HTML.</p>
+            </section>
+            <section class="html-zip-card zipper-force-card zipper-options-card">
+              <h3 class="zipper-options-card__title" data-i18n="zipper.options.title">Opciones</h3>
+              <div class="zipper-option-row zipper-option-row--title">
+                <label class="settings-check zipper-option-title-toggle" for="resource-title-toggle-input">
+                  <input id="resource-title-toggle-input" type="checkbox" data-resource-title-toggle>
+                  <span class="zipper-option-row__title" data-resource-title-toggle-label>Poner un título al recurso (título actual: sin título)</span>
+                </label>
+                <input id="resource-title-input" class="zip-title-input zipper-option-row__input" type="text" data-resource-title data-i18n-placeholder="zipper.resourceTitle.placeholder" placeholder="Mi recurso" autocomplete="off" hidden>
+              </div>
+              <div class="zipper-option-row zipper-option-row--availability">
+                <div class="zipper-option-row__main">
+                  <label class="settings-check zipper-option-toggle" for="restrict-toggle-proxy">
+                    <input id="restrict-toggle-proxy" type="checkbox" data-restrict-toggle-proxy>
+                    <span class="zipper-option-row__title" data-i18n="zipper.options.availabilityLabel">Configurar la disponibilidad del recurso</span>
+                  </label>
+                  <div class="zipper-restrict-summary" data-restrict-summary hidden>
+                    <span class="zipper-restrict-summary__label" data-restrict-summary-label data-i18n="zipper.restrict.summaryTitle">Acceso limitado por fechas</span>
+                    <div class="zipper-restrict-summary__items" data-restrict-summary-items></div>
+                  </div>
+                  <button class="ghost-button ghost-button--small zipper-restrict-edit-btn" type="button" data-main-settings-open data-restrict-edit-button data-i18n="zipper.options.availabilityEdit" hidden>Cambiar configuración</button>
+                </div>
+                <span class="info-dot" data-i18n-aria-label="zipper.help.previewApplyRestrictionsInfo" aria-label="Más información">?<span class="info-dot__tooltip" role="tooltip" data-i18n-html="zipper.options.availabilityInfo">Definir cuándo estará visible el recurso y qué acciones estarán disponibles en el gestor de recursos.</span></span>
+              </div>
+              <div class="zipper-option-row zipper-option-row--force">
+                <div class="zipper-force-folder-wrap">
+                  <label class="settings-check zipper-force-folder" for="force-folder-viewer-input">
+                    <input id="force-folder-viewer-input" type="checkbox" data-force-folder-viewer>
+                    <span data-i18n="zipper.step2.forceFolderLabel">Forzar visor de carpetas</span>
+                    <span class="info-dot" data-i18n-aria-label="zipper.step2.forceFolderTooltip" aria-label="Más información">?<span class="info-dot__tooltip" role="tooltip" data-i18n-html="zipper.step2.forceFolderTooltipHtml">Si activas esta opción, el ZIP se abrirá en modo explorador de archivos: verás el contenido como archivos organizados en carpetas, incluso cuando incluya HTML o documentos.<br><br>Si no lo marcas, el programa detectará automáticamente el tipo de visor que utilizará.<br><br>Si no estás seguro, no lo marques.</span></span>
+                  </label>
+                  <p class="zipper-force-folder__inline-note" data-force-folder-note data-i18n="zipper.step2.forceFolderNote" hidden>El recurso se abirá en modo explorador de archivos con el contenido como archivos organizados en carpetas</p>
+                </div>
+              </div>
+            </section>
+            <section class="html-zip-card html-zip-card--download">
+              <div class="zip-download-layout">
+                <div class="zip-preview-action">
+                  <p data-i18n="zipper.help.previewTitle">Previsualiza el recurso antes de descargarlo (opcional)</p>
+                  <label class="settings-check settings-check--preview" for="preview-apply-restrictions-input">
+                    <input id="preview-apply-restrictions-input" type="checkbox" data-preview-apply-restrictions>
+                    <span data-i18n="zipper.help.previewApplyRestrictions">Aplicar restricciones en la previsualización</span>
+                    <span class="info-dot" data-i18n-aria-label="zipper.help.previewApplyRestrictionsInfo" aria-label="Más información">?<span class="info-dot__tooltip" role="tooltip" data-i18n-html="zipper.help.previewApplyRestrictionsInfoHtml">Úsalo para comprobar cómo se abre y se cierra el recurso según las fechas configuradas.</span></span>
+                  </label>
+                  <div class="upload-actions">
+                    <button class="ghost-button" type="button" data-preview-resource data-i18n="zipper.help.previewAction">Previsualizar</button>
+                  </div>
+                  <p class="upload-status" data-preview-status></p>
+                </div>
+                <div class="zip-download-action">
+                  <h3 data-zip-download-title data-i18n="zipper.step2.title">Descarga el ZIP</h3>
+                  <p class="upload-note" data-i18n="zipper.step2.detail">Al crear el ZIP se descargará un archivo que puedes subir a Drive, Dropbox, Nextcloud, etc.</p>
+                  <div class="upload-actions">
+                    <button type="button" data-build-zip data-i18n="zipper.build">Crear y descargar ZIP</button>
+                  </div>
+                  <p class="upload-status" data-zip-status data-i18n-dynamic></p>
+                </div>
+              </div>
+            </section>
+            <div class="next-step">
+              <div class="next-step__text">
+                <p data-i18n="zipper.help.nextStepText">El siguiente paso es subir tu archivo a la nube con enlace público. Después, en Inicio, en la sección “Ya tengo un ZIP, ELPX o H5P en la nube”, pega ese enlace y crea el enlace para compartir.</p>
+              </div>
+              <a class="next-step__btn" href="#ya-tengo-zip-elpx" data-go-tab="home" data-i18n="zipper.help.goTab">
+                Ir a Inicio para pegar el enlace público
+              </a>
+            </div>
+          </div>
+          <div class="update-banner" data-update-banner hidden>
+            <div class="update-banner__content">
+              <strong data-i18n="updates.title">Nueva versión disponible</strong>
+              <span data-i18n="updates.body">El recurso ha cambiado en la nube. Puedes actualizarlo ahora.</span>
+            </div>
+            <div class="update-banner__actions">
+              <button type="button" data-update-action data-i18n="updates.action">Actualizar</button>
+              <button type="button" class="ghost-button" data-update-dismiss data-i18n="updates.dismiss">Ahora no</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="panel-manager"
+      class="tab-panel"
+      role="tabpanel"
+      aria-labelledby="tab-manager"
+      tabindex="0"
+      data-tab-panel="manager"
+      hidden
+    >
+      <div class="manager-card">
+        <div class="manager-header">
+          <div>
+            <h2 data-i18n="manager.title">Recursos guardados</h2>
+            <p class="manager-subtitle" data-i18n="manager.subtitle">Gestiona el espacio que ocupan los materiales guardados en este navegador.</p>
+          </div>
+          <div>
+            <button class="icon-button" type="button" data-manager-settings-open data-i18n-aria-label="manager.settings.open" data-i18n-tooltip="manager.settings.open">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="manager-stats">
+          <div class="stat">
+            <span class="stat-label" data-i18n="manager.stats.used">Espacio usado</span>
+            <span class="stat-value" data-storage-used>0 MB</span>
+            <span class="stat-note" data-storage-used-percent>--</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label" data-i18n="manager.stats.total">Espacio total</span>
+            <span class="stat-value" data-storage-total>--</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label" data-i18n="manager.stats.count">Recursos guardados</span>
+            <span class="stat-value" data-storage-count>0</span>
+          </div>
+        </div>
+        <div class="manager-toolbar">
+          <div class="manager-toolbar__left">
+            <span class="stat-label" data-i18n="manager.sort.label">Ordenar por</span>
+            <select class="manager-sort" data-manager-sort>
+              <option value="title" data-i18n="manager.sort.title">Título</option>
+              <option value="date" data-i18n="manager.sort.date">Fecha</option>
+              <option value="start" data-i18n="manager.sort.start">Inicio</option>
+              <option value="size" data-i18n="manager.sort.size">Tamaño</option>
+            </select>
+            <button class="ghost-button ghost-button--small manager-sort-dir" type="button" data-manager-sort-dir data-i18n-tooltip="manager.sort.dirHelp" aria-label="Orden ascendente/descendente">↑</button>
+          </div>
+          <div class="manager-toolbar__right">
+            <button class="ghost-button ghost-button--small" type="button" data-manager-check-updates data-i18n="manager.checkUpdates" data-i18n-tooltip="manager.checkUpdatesHelp">Comprobar actualizaciones</button>
+            <button class="ghost-button ghost-button--small" type="button" data-delete-all data-i18n="manager.deleteAll" data-i18n-tooltip="manager.deleteAllHelp">Eliminar todos los recursos</button>
+          </div>
+        </div>
+        <div class="manager-list" data-manager-list></div>
+      </div>
+    </section>
+    </div>
+
+    <div class="modal" data-manager-settings-modal hidden>
+      <div class="modal__overlay" data-manager-settings-close></div>
+      <div class="modal__card modal__card--narrow" role="dialog" aria-modal="true" aria-labelledby="manager-settings-title">
+        <div class="modal__header">
+          <h2 id="manager-settings-title" data-i18n="manager.settings.modalTitle">Ajustes de limpieza</h2>
+          <button class="modal__close" type="button" data-manager-settings-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <div class="manager-settings manager-settings--modal" data-manager-settings>
+            <div class="setting-card">
+              <div>
+                <span class="stat-label" data-i18n="manager.settings.usage.label">Límite de uso antes de limpiar</span>
+                <p class="setting-help" data-i18n="manager.settings.usage.help">Si se supera este porcentaje de la cuota, se borran los recursos más antiguos.</p>
+              </div>
+              <div class="setting-control">
+                <input type="range" min="40" max="95" step="5" value="70" data-cleanup-threshold>
+                <span class="setting-value"><span data-cleanup-threshold-value>70</span>%</span>
+              </div>
+            </div>
+            <div class="setting-card">
+              <div>
+                <span class="stat-label" data-i18n="manager.settings.days.label">Días para borrar recursos antiguos</span>
+                <p class="setting-help" data-i18n="manager.settings.days.help">Si un recurso no se abre en este periodo, se eliminará automáticamente.</p>
+              </div>
+              <div class="setting-control">
+                <input type="number" min="7" max="365" step="1" value="30" data-cleanup-days>
+                <span class="setting-suffix" data-i18n="manager.settings.days.suffix">días</span>
+              </div>
+            </div>
+          </div>
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-manager-settings-close data-i18n="common.close">Cerrar</button>
+            <button class="ghost-button" type="button" data-reset-cleanup data-i18n="manager.settings.reset" data-i18n-tooltip="manager.settings.resetHelp">Restaurar valores por defecto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-update-check-modal hidden>
+      <div class="modal__overlay" data-update-check-close></div>
+      <div class="modal__card modal__card--narrow" role="dialog" aria-modal="true" aria-labelledby="update-check-title">
+        <div class="modal__header">
+          <h2 id="update-check-title" data-i18n="manager.checkUpdatesModalTitle">Comprobar actualizaciones</h2>
+          <button class="modal__close" type="button" data-update-check-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" data-update-check-status data-i18n="manager.checkingUpdates">Comprobando actualizaciones...</p>
+          <p class="step-note" data-update-check-note data-i18n="manager.checkUpdatesNote">Puedes cerrar esta ventana. La comprobación seguirá en segundo plano.</p>
+          <div class="loading-bar" data-update-check-bar-wrap>
+            <div class="loading-bar__fill" data-update-check-bar></div>
+          </div>
+          <p class="step-note" data-update-check-progress data-i18n="manager.checkUpdatesProgress" data-i18n-dynamic>0 de 0</p>
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-update-check-close data-i18n="common.close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-html-modal hidden>
+      <div class="modal__overlay" data-html-close></div>
+      <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="html-title">
+        <div class="modal__header">
+          <h2 id="html-title" data-i18n="html.title">Elige el HTML inicial</h2>
+          <button class="modal__close" type="button" data-html-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" data-i18n="html.subtitle">No se encontró un index.html. Selecciona el archivo HTML que quieres abrir primero.</p>
+          <div class="html-picker" data-html-list></div>
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-html-close data-i18n="common.cancel">Cancelar</button>
+            <button type="button" data-html-confirm data-i18n="html.confirm">Usar este HTML</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-react-modal hidden>
+      <div class="modal__overlay" data-react-close></div>
+      <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="react-title">
+        <div class="modal__header">
+          <h2 id="react-title" data-i18n="reactPrompt.title">Esto parece React</h2>
+          <button class="modal__close" type="button" data-react-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" data-i18n="reactPrompt.subtitle">Este contenido parece React/JSX (no HTML). Copia este prompt y pégalo en el chat de tu IA para que lo convierta a HTML.</p>
+          <textarea class="embed-code-textarea" data-react-prompt readonly></textarea>
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-react-close data-i18n="common.close">Cerrar</button>
+            <button type="button" data-react-copy data-i18n="reactPrompt.copy">Copiar prompt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-about-modal hidden>
+      <div class="modal__overlay" data-about-close></div>
+      <div class="modal__card modal__card--help" role="dialog" aria-modal="true" aria-labelledby="about-title" aria-describedby="about-intro">
+        <div class="modal__header">
+          <h2 id="about-title" data-i18n="about.title" tabindex="-1">Ayuda</h2>
+          <button class="modal__close" type="button" data-about-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" id="about-intro" data-i18n="about.intro">Guía rápida de uso del visor.</p>
+          <div class="about-guide" data-i18n-html="about.body">
+            <p>Este visor abre un ZIP que contiene una web sencilla con HTML, CSS, imágenes, vídeos, audio y enlaces internos para que puedas compartirla con tu alumnado sin instalar nada.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-restrict-modal hidden>
+      <div class="modal__overlay modal__overlay--solid"></div>
+      <div class="modal__card modal__card--narrow" role="dialog" aria-modal="true" aria-labelledby="restrict-title">
+        <div class="modal__header">
+          <h2 id="restrict-title" data-i18n="restrictionModal.title">Acceso restringido</h2>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" data-i18n="restrictionModal.body">Este recurso no está disponible en este momento.</p>
+          <p class="setting-help" data-restrict-range></p>
+          <p class="restriction-countdown" data-restrict-countdown hidden></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-main-settings-modal hidden>
+      <div class="modal__overlay" data-main-settings-close></div>
+      <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal__header">
+          <h2 id="settings-title" data-i18n="settings.title">Ajustes</h2>
+          <button class="modal__close" type="button" data-main-settings-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="setting-help" data-i18n="settings.restrictHint">No limites el acceso a no ser que tengas un buen motivo para hacerlo.</p>
+          <label class="settings-check settings-check--primary">
+            <input type="checkbox" data-restrict-toggle>
+            <span data-i18n="settings.restrictToggle">Limitar el acceso</span>
+          </label>
+
+          <div class="settings-grid settings-grid--dates" data-restrict-fields hidden>
+            <div class="settings-field">
+              <span class="stat-label" data-i18n="settings.startLabel">Inicio</span>
+              <input type="datetime-local" data-restrict-start>
+            </div>
+            <div class="settings-field settings-field--end">
+              <span class="stat-label" data-i18n="settings.endLabel">Fin</span>
+              <input type="datetime-local" data-restrict-end>
+            </div>
+            <div class="settings-end-options">
+              <label class="settings-check">
+                <input type="checkbox" data-restrict-no-end>
+                <span data-i18n="settings.neverExpires">Acceso con fecha de fin</span>
+              </label>
+              <label class="settings-check" data-restrict-live-end-wrap hidden>
+                <input type="checkbox" data-restrict-live-end>
+                <span data-i18n="settings.enforceEndDuringView">Desactivar la visualización al llegar a la fecha de fin, incluso si está abierto</span>
+              </label>
+              <div class="settings-live-warning" data-restrict-warning-wrap hidden>
+                <label class="settings-field settings-field--compact">
+                  <span class="stat-label" data-i18n="settings.warningMinutesLabel">Avisar antes en minutos (0 para no avisar)</span>
+                  <input type="number" min="0" max="180" step="1" value="5" data-restrict-warning-minutes>
+                </label>
+                <label class="settings-field settings-field--compact">
+                  <span class="stat-label" data-i18n="settings.warningMessageLabel">Mensaje de aviso</span>
+                  <input type="text" data-restrict-warning-message data-i18n-placeholder="settings.warningMessagePlaceholder" placeholder="El tiempo de acceso se agota en {minutes} minutos.">
+                </label>
+              </div>
+            </div>
+            <p class="setting-help setting-help--period" data-i18n="settings.periodHint" data-restrict-period-hint>El recurso solo será visible dentro de este intervalo.</p>
+          </div>
+
+          <div class="settings-actions-panel" data-restrict-actions-panel hidden>
+            <div class="settings-panel__title settings-panel__title--sub" data-restrict-actions-title data-i18n="settings.actionsTitle" hidden>Acciones permitidas</div>
+            <div class="settings-grid settings-actions" data-restrict-actions hidden>
+              <div class="settings-actions__group settings-actions__group--share">
+                <label class="settings-check">
+                  <input type="checkbox" data-restrict-allow-share checked>
+                  <span data-i18n="settings.allowShare">Compartir</span>
+                </label>
+                <label class="settings-check">
+                  <input type="checkbox" data-restrict-allow-embed checked>
+                  <span data-i18n="settings.allowEmbed">Insertar en web</span>
+                </label>
+              </div>
+              <div class="settings-actions__group settings-actions__group--download">
+                <label class="settings-check">
+                  <input type="checkbox" data-restrict-allow-download>
+                  <span data-i18n="settings.allowDownload">Descargar</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-main-settings-close data-i18n="common.close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" data-embed-modal hidden>
+      <div class="modal__overlay" data-embed-close></div>
+      <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="embed-title">
+        <div class="modal__header">
+          <h2 id="embed-title" data-i18n="embed.title">Insertar en una web</h2>
+          <button class="modal__close" type="button" data-embed-close data-i18n-aria-label="common.close">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="manager-subtitle" data-i18n="embed.subtitle">Copia y pega este código HTML en tu web. Incluye autoajuste de altura si la página permite scripts.</p>
+          <textarea class="embed-code-textarea" data-embed-code readonly></textarea>
+          <div class="html-picker__actions">
+            <button class="ghost-button" type="button" data-embed-close data-i18n="common.close">Cerrar</button>
+            <button type="button" data-embed-copy data-i18n="embed.copy">Copiar código</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <a class="footer-link" href="https://bilateria.org" target="_blank" rel="noopener">(c) 2026 Juan Jose de Haro</a>
+      <span class="footer-sep">·</span>
+    <span class="footer-link" data-app-version>v3.2.2</span>
+      <span class="footer-sep">·</span>
+      <a class="footer-link" href="https://github.com/visor-webzip/visor-webzip.github.io" target="_blank" rel="noopener">
+        <svg class="footer-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.62 7.62 0 0 1 8 4.77c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+        GitHub
+      </a>
+      <span class="footer-sep">·</span>
+      <a class="footer-link" href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPLv3</a>
+    </footer>
+  </main>
+  <div class="global-toast" data-global-toast hidden></div>
+
+  <div class="embed-shell" data-embed-shell hidden>
+    <iframe class="embed-frame" data-embed-frame title="Contenido" allow="fullscreen"></iframe>
+    <div class="embed-fallback" data-embed-fallback hidden>
+      <div class="embed-fallback__card">
+        <h1 class="embed-fallback__title" data-i18n="embed.fallback.title">No se puede abrir incrustado</h1>
+        <p class="embed-fallback__subtitle" data-i18n="embed.fallback.subtitle">Tu navegador o la página donde se inserta está bloqueando el almacenamiento necesario. Abre el recurso en una pestaña nueva.</p>
+        <a class="open-link" data-embed-open-fallback href="#" target="_blank" rel="noopener" data-i18n="embed.fallback.open">Abrir en pestaña nueva</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+  <script src="config.js"></script>
+			  <script src="i18n.js?v=28"></script>
+	  <script src="restrictions.js?v=5"></script>
+	  <script src="ui.js?v=2"></script>
+	  <script src="downloads.js?v=2"></script>
+	  <script src="zipper.js?v=1"></script>
+	  <script src="html-picker.js?v=1"></script>
+	  <script src="storage.js?v=1"></script>
+		  <script src="manager.js?v=3"></script>
+		  <script src="restriction-ui.js?v=13"></script>
+	  <script src="share.js?v=2"></script>
+	  <script src="nav.js?v=3"></script>
+			  <script src="app.js?v=73"></script>
+ </body>
+ </html>
